@@ -26,7 +26,7 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/user/login', formData);
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/user/login`, formData);
       console.log('✅ Login successful:', response.data);
 
       // OPTIONAL: Store token if you want

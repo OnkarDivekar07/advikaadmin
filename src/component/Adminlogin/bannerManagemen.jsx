@@ -8,13 +8,12 @@ const BannerManagement = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const API_URL = 'http://localhost:5000/api/banner';
 
   // Fetch banners from API
   const fetchBanners = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(API_URL);
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/banner`);
       if (Array.isArray(res.data)) {
         setBanners(res.data);
       } else {
@@ -52,7 +51,7 @@ const BannerManagement = () => {
     formData.append('image', selectedImage);
 
     try {
-      await axios.post(API_URL, formData, {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/banner`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       alert('Banner uploaded successfully');
