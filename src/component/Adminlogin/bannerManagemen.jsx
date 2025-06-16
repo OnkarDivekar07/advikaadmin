@@ -52,8 +52,8 @@ const BannerManagement = () => {
 
     try {
       await axios.post(`${process.env.REACT_APP_API_URL}/api/banner`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+  headers: { 'Content-Type': 'multipart/form-data' },
+});
       alert('Banner uploaded successfully');
       setSelectedImage(null);
       setPreviewImage(null);
