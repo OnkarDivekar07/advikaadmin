@@ -30,7 +30,7 @@ const LoginPage = () => {
       console.log('✅ Login successful:', response.data);
 
       // OPTIONAL: Store token if you want
-      // localStorage.setItem('token', response.data.token);
+      localStorage.setItem('token', response.data.token);
 
       alert('Login successful');
 
