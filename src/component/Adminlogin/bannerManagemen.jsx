@@ -8,7 +8,6 @@ const BannerManagement = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-
   // Fetch banners from API
   const fetchBanners = async () => {
     setLoading(true);
@@ -17,7 +16,7 @@ const BannerManagement = () => {
       if (Array.isArray(res.data)) {
         setBanners(res.data);
       } else {
-        setBanners(res.data ? [res.data] : []); // Wrap single object in array
+        setBanners(res.data ? [res.data] : []);
       }
     } catch (error) {
       console.error('Error fetching banners:', error);
@@ -39,7 +38,7 @@ const BannerManagement = () => {
     }
   };
 
-  // Handle form submit (upload banner)
+  // Upload new banner
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!selectedImage) {
@@ -52,15 +51,30 @@ const BannerManagement = () => {
 
     try {
       await axios.post(`${process.env.REACT_APP_API_URL}/api/banner`, formData, {
-  headers: { 'Content-Type': 'multipart/form-data' },
-});
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       alert('Banner uploaded successfully');
       setSelectedImage(null);
       setPreviewImage(null);
-      fetchBanners(); // Refresh after upload
+      fetchBanners(); // Refresh
     } catch (error) {
       console.error('Error uploading banner:', error);
       alert('Failed to upload banner');
+    }
+  };
+
+  // Delete banner by ID
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this banner?');
+    if (!confirmDelete) return;
+
+    try {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/banner/${id}`);
+      alert('Banner deleted successfully');
+      fetchBanners(); // Refresh after delete
+    } catch (error) {
+      console.error('Error deleting banner:', error);
+      alert('Failed to delete banner');
     }
   };
 
@@ -96,14 +110,22 @@ const BannerManagement = () => {
         <p className="text-gray-500">Loading banners...</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {banners.map((banner, index) => (
-            <div key={index} className="border rounded-lg p-3 bg-gray-50 flex flex-col items-center">
+          {banners.map((banner) => (
+            <div
+              key={banner.id}
+              className="border rounded-lg p-3 bg-gray-50 flex flex-col items-center"
+            >
               <img
-                alt={`Banner ${index + 1}`}
+                alt="Banner"
                 src={banner.imageUrl}
                 className="rounded mb-3 w-full h-[150px] object-cover"
               />
-              {/* Future: Edit / Delete buttons can go here */}
+              <button
+                onClick={() => handleDelete(banner.id)}
+                className="text-red-600 border border-red-600 px-3 py-1 rounded hover:bg-red-600 hover:text-white transition"
+              >
+                Delete
+              </button>
             </div>
           ))}
         </div>
