@@ -1,24 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const NewArrivalsManagement = () => {
-  const newArrivals = [
-    {
-      src: "https://storage.googleapis.com/a1aa/image/ec5345a5-a9b1-4c2b-1033-ff144b5b37af.jpg",
-      name: "White Running Shoes",
-    },
-    {
-      src: "https://storage.googleapis.com/a1aa/image/62ba4e72-3b04-4940-828b-2e3c28f2039c.jpg",
-      name: "Black Leather Wallet",
-    },
-    {
-      src: "https://storage.googleapis.com/a1aa/image/eb8c5796-f8e4-4a00-5730-2959c2ffb028.jpg",
-      name: "Blue Denim Jacket",
-    },
-    {
-      src: "https://storage.googleapis.com/a1aa/image/b6eca3b0-2e8d-4564-62da-4b241ab367e4.jpg",
-      name: "Silver Hoop Earrings",
-    },
-  ];
+  const [newArrivals, setNewArrivals] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchNewArrivals = async () => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/banner/new-arrivals`);
+      setNewArrivals(res.data.data || []);
+    } catch (error) {
+      console.error('Error fetching new arrivals:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNewArrivals();
+  }, []);
+
+  if (loading) return <p>Loading New Arrivals...</p>;
 
   return (
     <div>
@@ -29,7 +31,7 @@ const NewArrivalsManagement = () => {
             <img
               alt={item.name}
               className="rounded mb-3 w-full object-cover"
-              src={item.src}
+              src={item.images?.[0] || 'https://via.placeholder.com/150'}
               height="150"
               width="150"
             />
