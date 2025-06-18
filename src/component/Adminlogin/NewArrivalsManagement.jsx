@@ -16,6 +16,16 @@ const NewArrivalsManagement = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    try {
+      await axios.patch(`${process.env.REACT_APP_API_URL}/api/banner/new-arrival/${id}`);
+      // Remove the deleted item from the UI
+      setNewArrivals(prev => prev.filter(item => item.id !== id));
+    } catch (error) {
+      console.error('Error removing item from new arrivals:', error);
+    }
+  };
+
   useEffect(() => {
     fetchNewArrivals();
   }, []);
@@ -36,8 +46,12 @@ const NewArrivalsManagement = () => {
               width="150"
             />
             <p className="font-medium text-gray-900 mb-1">{item.name}</p>
-            <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm w-full" type="button">
-              Edit
+            <button
+              onClick={() => handleDelete(item.id)}
+              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm w-full"
+              type="button"
+            >
+              Delete
             </button>
           </div>
         ))}
