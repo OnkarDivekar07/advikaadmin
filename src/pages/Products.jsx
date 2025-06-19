@@ -1,15 +1,31 @@
 // src/component/Adminlogin/Products.jsx
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import ProductForm from "../component/Adminlogin/ProductForm";
 import Sidebar from "../component/Adminlogin/Sidebar";
 import Header from "../component/Adminlogin/Header";
 import Footer from "../component/Adminlogin/footer";
+const token = localStorage.getItem("token");
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [showForm, setShowForm] = useState(false);
+
+  const handleDelete = async (id) => {
+  if (!window.confirm("Are you sure you want to delete this product?")) return;
+
+  try {
+    await axios.delete(`${process.env.REACT_APP_API_URL}/api/products/${id}`,{
+        headers: {
+          Authorization: `Bearer ${token}`, // 🔐 Add token in header
+        },
+      });
+    setProducts(products.filter((product) => product.id !== id));
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    alert("Failed to delete product.");
+  }
+};
 
   // Fetch products from backend
   const fetchProducts = async () => {
@@ -97,11 +113,11 @@ const Products = () => {
                       <td className="px-6 py-4 text-right text-sm font-medium">
                         <button className="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
                         <button
-                          onClick={() => console.log("Delete or Cancel logic")}
-                          className="px-4 py-2 border rounded text-gray-600 border-gray-400 hover:bg-gray-100"
-                        >
-                          Cancel
-                        </button>
+  onClick={() => handleDelete(product.id)}
+  className="px-4 py-2 border rounded text-red-600 border-red-400 hover:bg-red-100"
+>
+  Delete
+</button>
                       </td>
                     </tr>
                   ))}
@@ -111,7 +127,6 @@ const Products = () => {
           </section>
         </main>
       </div>
-
       <Footer />
     </div>
   );
