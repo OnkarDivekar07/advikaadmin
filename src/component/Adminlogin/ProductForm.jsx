@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import axios from "axios";
+
+const categoryOptions = ["Truck", "Tempo", "Pickup", "Car", "Two Wheeler", "Tractor"];
 const token = localStorage.getItem("token");
+
 const ProductForm = ({ onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: "",
-    category: "",
+    category: [],
     brand: "",
     price: "",
     stock: "",
@@ -17,10 +20,18 @@ const ProductForm = ({ onClose, onSuccess }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: type === "checkbox" ? checked : value,
-    });
+    }));
+  };
+
+  const handleCategoryChange = (e) => {
+    const selected = Array.from(e.target.selectedOptions, (option) => option.value);
+    setFormData((prev) => ({
+      ...prev,
+      category: selected,
+    }));
   };
 
   const handleImageChange = (e) => {
@@ -28,39 +39,45 @@ const ProductForm = ({ onClose, onSuccess }) => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setUploading(true);
+    e.preventDefault();
+    setUploading(true);
 
-  try {
-    const form = new FormData();
+    try {
+      const form = new FormData();
 
-    Object.entries(formData).forEach(([key, val]) => {
-      form.append(key, val); // Browser handles type conversion
-    });
+      // Append form fields to FormData
+      Object.entries(formData).forEach(([key, val]) => {
+        if (Array.isArray(val)) {
+          val.forEach((v) => form.append(`${key}[]`, v));
+        } else {
+          form.append(key, val);
+        }
+      });
 
-    images.forEach((image) => {
-      form.append("images", image);
-    });
+      // Append images
+      images.forEach((image) => {
+        form.append("images", image);
+      });
 
-    const response = await axios.post(
-      `${process.env.REACT_APP_API_URL}/api/products`,
-      form,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/products`,
+        form,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    alert("Product created successfully!");
-    if (onSuccess) onSuccess();
-  } catch (error) {
-    console.error("Upload failed:", error.response?.data || error.message);
-    alert("Error uploading product");
-  } finally {
-    setUploading(false);
-  }
-};
+      alert("Product created successfully!");
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error("Upload failed:", error.response?.data || error.message);
+      alert("Error uploading product");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <form
@@ -78,14 +95,30 @@ const ProductForm = ({ onClose, onSuccess }) => {
         required
         className="w-full p-2 border rounded"
       />
+
+      <label className="block font-medium text-gray-700 mb-2">Select Categories</label>
+<div className="grid grid-cols-2 gap-2">
+  {categoryOptions.map((cat) => (
+    <label key={cat} className="flex items-center space-x-2">
       <input
-        type="text"
-        name="category"
-        placeholder="Category"
-        value={formData.category}
-        onChange={handleChange}
-        className="w-full p-2 border rounded"
+        type="checkbox"
+        value={cat}
+        checked={formData.category.includes(cat)}
+        onChange={(e) => {
+          const selected = [...formData.category];
+          if (e.target.checked) {
+            selected.push(cat);
+          } else {
+            const index = selected.indexOf(cat);
+            if (index > -1) selected.splice(index, 1);
+          }
+          setFormData((prev) => ({ ...prev, category: selected }));
+        }}
       />
+      <span>{cat}</span>
+    </label>
+  ))}
+</div>
       <input
         type="text"
         name="brand"
@@ -94,6 +127,7 @@ const ProductForm = ({ onClose, onSuccess }) => {
         onChange={handleChange}
         className="w-full p-2 border rounded"
       />
+
       <input
         type="number"
         name="price"
@@ -103,6 +137,7 @@ const ProductForm = ({ onClose, onSuccess }) => {
         required
         className="w-full p-2 border rounded"
       />
+
       <input
         type="number"
         name="stock"
@@ -111,6 +146,7 @@ const ProductForm = ({ onClose, onSuccess }) => {
         onChange={handleChange}
         className="w-full p-2 border rounded"
       />
+
       <textarea
         name="description"
         placeholder="Product Description"
