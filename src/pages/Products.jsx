@@ -5,35 +5,33 @@ import ProductForm from "../component/Adminlogin/ProductForm";
 import Sidebar from "../component/Adminlogin/Sidebar";
 import Header from "../component/Adminlogin/Header";
 import Footer from "../component/Adminlogin/footer";
+
 const token = localStorage.getItem("token");
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
 
-  const handleDelete = async (id) => {
-  if (!window.confirm("Are you sure you want to delete this product?")) return;
-
-  try {
-    await axios.delete(`${process.env.REACT_APP_API_URL}/api/products/${id}`,{
-        headers: {
-          Authorization: `Bearer ${token}`, // 🔐 Add token in header
-        },
-      });
-    setProducts(products.filter((product) => product.id !== id));
-  } catch (error) {
-    console.error("Error deleting product:", error);
-    alert("Failed to delete product.");
-  }
-};
-
-  // Fetch products from backend
   const fetchProducts = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products`);
       setProducts(response.data.data || []);
     } catch (error) {
       console.error("Error fetching products:", error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    try {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/products/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      alert("Failed to delete product.");
     }
   };
 
@@ -44,17 +42,18 @@ const Products = () => {
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col">
       <Header />
-
       <div className="flex flex-1">
         <Sidebar />
-
         <main className="flex-1 p-6">
           <section className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Products</h2>
 
             <div className="mb-4">
               <button
-                onClick={() => setShowForm(true)}
+                onClick={() => {
+                  setEditingProduct(null);
+                  setShowForm(true);
+                }}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
               >
                 <i className="fas fa-plus mr-2"></i>
@@ -65,9 +64,14 @@ const Products = () => {
             {showForm && (
               <div className="my-6">
                 <ProductForm
-                  onClose={() => setShowForm(false)}
+                  initialData={editingProduct}
+                  onClose={() => {
+                    setShowForm(false);
+                    setEditingProduct(null);
+                  }}
                   onSuccess={() => {
                     setShowForm(false);
+                    setEditingProduct(null);
                     fetchProducts();
                   }}
                 />
@@ -91,18 +95,18 @@ const Products = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {products.map((product) => (
                     <tr key={product.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-6 py-4">
                         <img
                           src={product.images?.[0] || "/placeholder.png"}
                           alt={product.name}
                           className="w-16 h-16 object-cover rounded"
                         />
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{product.name}</td>
+                      <td className="px-6 py-4 text-sm font-medium">{product.name}</td>
                       <td className="px-6 py-4 text-sm text-gray-500">{product.brand}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{product.category}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">₹{Number(product.price).toFixed(2)}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{product.stock}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500">{product.category?.join(", ")}</td>
+                      <td className="px-6 py-4 text-sm">₹{Number(product.price).toFixed(2)}</td>
+                      <td className="px-6 py-4 text-sm">{product.stock}</td>
                       <td className="px-6 py-4 text-sm">
                         {product.isNewArrival ? (
                           <span className="text-green-600 font-semibold">Yes</span>
@@ -110,14 +114,22 @@ const Products = () => {
                           <span className="text-gray-400">No</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right text-sm font-medium">
-                        <button className="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
+                      <td className="px-6 py-4 text-right text-sm">
                         <button
-  onClick={() => handleDelete(product.id)}
-  className="px-4 py-2 border rounded text-red-600 border-red-400 hover:bg-red-100"
->
-  Delete
-</button>
+                          onClick={() => {
+                            setEditingProduct(product);
+                            setShowForm(true);
+                          }}
+                          className="text-blue-600 hover:text-blue-900 mr-4"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(product.id)}
+                          className="px-4 py-2 border rounded text-red-600 border-red-400 hover:bg-red-100"
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))}

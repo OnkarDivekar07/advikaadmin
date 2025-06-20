@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 const categoryOptions = ["Truck", "Tempo", "Pickup", "Car", "Two Wheeler", "Tractor"];
 const token = localStorage.getItem("token");
 
-const ProductForm = ({ onClose, onSuccess }) => {
+const ProductForm = ({ initialData = null, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: "",
     category: [],
@@ -18,19 +18,25 @@ const ProductForm = ({ onClose, onSuccess }) => {
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
 
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name || "",
+        category: initialData.category || [],
+        brand: initialData.brand || "",
+        price: initialData.price || "",
+        stock: initialData.stock || "",
+        description: initialData.description || "",
+        isNewArrival: initialData.isNewArrival || false,
+      });
+    }
+  }, [initialData]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleCategoryChange = (e) => {
-    const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-    setFormData((prev) => ({
-      ...prev,
-      category: selected,
     }));
   };
 
@@ -44,8 +50,6 @@ const ProductForm = ({ onClose, onSuccess }) => {
 
     try {
       const form = new FormData();
-
-      // Append form fields to FormData
       Object.entries(formData).forEach(([key, val]) => {
         if (Array.isArray(val)) {
           val.forEach((v) => form.append(`${key}[]`, v));
@@ -54,22 +58,26 @@ const ProductForm = ({ onClose, onSuccess }) => {
         }
       });
 
-      // Append images
       images.forEach((image) => {
         form.append("images", image);
       });
 
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/products`,
-        form,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const endpoint = initialData
+        ? `${process.env.REACT_APP_API_URL}/api/products/${initialData.id}`
+        : `${process.env.REACT_APP_API_URL}/api/products`;
 
-      alert("Product created successfully!");
+      const method = initialData ? "put" : "post";
+
+      await axios({
+        method,
+        url: endpoint,
+        data: form,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      alert(initialData ? "Product updated!" : "Product created!");
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error("Upload failed:", error.response?.data || error.message);
@@ -80,11 +88,10 @@ const ProductForm = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4 bg-white p-6 rounded shadow max-w-xl mx-auto"
-    >
-      <h2 className="text-xl font-semibold mb-4">Add New Product</h2>
+    <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded shadow max-w-xl mx-auto">
+      <h2 className="text-xl font-semibold mb-4">
+        {initialData ? "Edit Product" : "Add New Product"}
+      </h2>
 
       <input
         type="text"
@@ -97,28 +104,29 @@ const ProductForm = ({ onClose, onSuccess }) => {
       />
 
       <label className="block font-medium text-gray-700 mb-2">Select Categories</label>
-<div className="grid grid-cols-2 gap-2">
-  {categoryOptions.map((cat) => (
-    <label key={cat} className="flex items-center space-x-2">
-      <input
-        type="checkbox"
-        value={cat}
-        checked={formData.category.includes(cat)}
-        onChange={(e) => {
-          const selected = [...formData.category];
-          if (e.target.checked) {
-            selected.push(cat);
-          } else {
-            const index = selected.indexOf(cat);
-            if (index > -1) selected.splice(index, 1);
-          }
-          setFormData((prev) => ({ ...prev, category: selected }));
-        }}
-      />
-      <span>{cat}</span>
-    </label>
-  ))}
-</div>
+      <div className="grid grid-cols-2 gap-2">
+        {categoryOptions.map((cat) => (
+          <label key={cat} className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              value={cat}
+              checked={formData.category.includes(cat)}
+              onChange={(e) => {
+                const selected = [...formData.category];
+                if (e.target.checked) {
+                  selected.push(cat);
+                } else {
+                  const index = selected.indexOf(cat);
+                  if (index > -1) selected.splice(index, 1);
+                }
+                setFormData((prev) => ({ ...prev, category: selected }));
+              }}
+            />
+            <span>{cat}</span>
+          </label>
+        ))}
+      </div>
+
       <input
         type="text"
         name="brand"
@@ -180,7 +188,7 @@ const ProductForm = ({ onClose, onSuccess }) => {
           disabled={uploading}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
-          {uploading ? "Uploading..." : "Add Product"}
+          {uploading ? "Uploading..." : initialData ? "Update Product" : "Add Product"}
         </button>
 
         <button
