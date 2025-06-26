@@ -1,10 +1,35 @@
-// src/components/DashboardCards.jsx
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+
 function DashboardCards() {
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    totalOrders: 0,
+    totalUsers: 0,
+    totalRevenue: 0,
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem('token'); // Adjust if you store token differently
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/admin/stats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setStats(res.data);
+      } catch (error) {
+        console.error("Failed to fetch stats", error);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   const cards = [
-    { id: "total-products", icon: "box-open", label: "Total Products", value: "1,234", color: "blue" },
-    { id: "total-orders", icon: "shopping-cart", label: "Total Orders", value: "3,567", color: "green" },
-    { id: "total-users", icon: "users", label: "Total Users", value: "8,910", color: "yellow" },
-    { id: "monthly-revenue", icon: "dollar-sign", label: "Monthly Revenue", value: "$123,456", color: "red" },
+    { id: "total-products", icon: "box-open", label: "Total Products", value: stats.totalProducts, color: "blue" },
+    { id: "total-orders", icon: "shopping-cart", label: "Total Orders", value: stats.totalOrders, color: "green" },
+    { id: "total-users", icon: "users", label: "Total Users", value: stats.totalUsers, color: "yellow" },
+    { id: "monthly-revenue", icon: "dollar-sign", label: "Total Revenue", value: `₹${stats.totalRevenue}`, color: "red" },
   ];
 
   return (

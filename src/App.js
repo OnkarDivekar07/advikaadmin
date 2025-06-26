@@ -4,6 +4,8 @@ import LoginPage from './pages/AdminLoginPage/LoginPage';
 import ContentPage from './pages/Content';
 import AdminDashboard from './pages/Dashboard';
 import ProductsPage from './pages/Products';
+import Order from   './pages/Orders';
+import OrderViewPage from "./pages/orderviewpage";
 
 function App() {
   return (
@@ -13,6 +15,8 @@ function App() {
         <Route path="/dashboard" element={<AdminDashboard />} />
         <Route path="/content" element={<ContentPage />} />
         <Route path="/products" element={<ProductsPage />} />
+        <Route path="/orders" element={<Order/>} />
+         <Route path="/orders/:id" element={<OrderViewPage/>} /> 
       </Routes>
     </Router>
   );
