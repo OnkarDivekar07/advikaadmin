@@ -6,6 +6,9 @@ import AdminDashboard from './pages/Dashboard';
 import ProductsPage from './pages/Products';
 import Order from   './pages/Orders';
 import OrderViewPage from "./pages/orderviewpage";
+import Users from  "./pages/Users"
+import Inventory from './pages/Inventory';
+import  Settings from "./pages/Settings"
 
 function App() {
   return (
@@ -16,7 +19,10 @@ function App() {
         <Route path="/content" element={<ContentPage />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/orders" element={<Order/>} />
-         <Route path="/orders/:id" element={<OrderViewPage/>} /> 
+        <Route path="/orders/:id" element={<OrderViewPage/>} /> 
+        <Route path="/users" element={<Users/>} /> 
+        <Route path="/inventory" element={<Inventory/>} /> 
+        <Route path="/settings" element={<Settings/>} /> 
       </Routes>
     </Router>
   );

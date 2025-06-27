@@ -8,7 +8,6 @@ const AdminDashboard = () => {
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col">
       <Header />
-
       <div className="flex flex-1 max-w-7xl mx-auto px-4 lg:px-8 sm:px-6 py-6 space-x-6 flex-col md:flex-row">
         <Sidebar />
         <DashboardCards />

@@ -1,49 +1,89 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import Header from '../component/Adminlogin/Header';
+import Sidebar from '../component/Adminlogin/Sidebar';
 
 const Users = () => {
-  const users = [
-    { id: 1, name: "John Doe", email: "john.doe@example.com", role: "Admin", status: "Active" },
-    { id: 2, name: "Jane Smith", email: "jane.smith@example.com", role: "Editor", status: "Active" },
-    { id: 3, name: "Alice Johnson", email: "alice.johnson@example.com", role: "Viewer", status: "Inactive" },
-    { id: 4, name: "Bob Martin", email: "bob.martin@example.com", role: "Admin", status: "Active" },
-  ];
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const token = localStorage.getItem('token'); // or sessionStorage if you're using that
+        const response = await axios.get(
+          `${process.env.REACT_APP_API_URL}/api/admin/users`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setUsers(response.data); // assuming the backend sends { users: [...] }
+      } catch (error) {
+        console.error('Failed to fetch users', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   return (
-    <section aria-label="Users" className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Users</h2>
-      <div className="mb-4">
-        <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">
-          <i className="fas fa-plus mr-2"></i>
-          Add New User
-        </button>
+    <div className="bg-gray-100 min-h-screen flex flex-col">
+      <Header />
+      <div className="flex flex-1">
+        <Sidebar />
+        <main className="flex-1 p-6">
+          <section className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Users</h2>
+
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+             <div className="overflow-x-auto">
+  <table className="min-w-full divide-y divide-gray-200 text-sm md:text-base">
+    <thead className="bg-gray-100 text-left text-gray-600 font-semibold">
+      <tr>
+        <th className="px-4 py-2">Name</th>
+        <th className="px-4 py-2">Email</th>
+        <th className="px-4 py-2">Phone</th>
+        <th className="px-4 py-2">Role</th>
+        <th className="px-4 py-2">Total Orders</th>
+        <th className="px-4 py-2">Total Spent</th>
+        <th className="px-4 py-2">Last Order</th>
+        <th className="px-4 py-2">City</th>
+        <th className="px-4 py-2">Joined On</th>
+      </tr>
+    </thead>
+    <tbody>
+      {users.map((user, index) => (
+        <tr key={user.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+          <td className="px-4 py-2">{user.name}</td>
+          <td className="px-4 py-2">{user.email}</td>
+          <td className="px-4 py-2">{user.phone}</td>
+          <td className="px-4 py-2">{user.role || 'Customer'}</td>
+          <td className="px-4 py-2">{user.totalOrders}</td>
+          <td className="px-4 py-2">₹{user.totalSpent}</td>
+          <td className="px-4 py-2">
+            {user.lastOrderDate
+              ? new Date(user.lastOrderDate).toLocaleDateString()
+              : 'N/A'}
+          </td>
+          <td className="px-4 py-2">{user.addresses?.[0]?.city || '—'}</td>
+          <td className="px-4 py-2">
+            {new Date(user.joinedOn).toLocaleDateString()}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div> )}
+          </section>
+        </main>
       </div>
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th className="relative px-6 py-3"><span className="sr-only">Edit</span></th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {users.map((user) => (
-            <tr key={user.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.name}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.role}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.status}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <a className="text-blue-600 hover:text-blue-900" href="#">
-                  Edit
-                </a>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </section>
+    </div>
   );
 };
 
